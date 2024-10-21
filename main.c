@@ -1,11 +1,4 @@
-
-
-/**
- * main.c
- */
 #include  <stdint.h>
-
-
 #include <stdbool.h>
 #include "tm4c123gh6pm.h"
 
@@ -29,11 +22,9 @@ void UART0_Init(void) {
     GPIO_PORTA_DEN_R |= (1 << 0) | (1 << 1);     // Enable digital I/O for PA0 and PA1
 
     UART0_CTL_R &= ~UART_CTL_UARTEN;              // Disable UART0 to configure it
-    UART0_IBRD_R = 130;                          // Set integer part of baud rate (9600 baud)
+    UART0_IBRD_R = 130;                        // Set integer part of baud rate (9600 baud)
     UART0_FBRD_R = 13;                           // Set fractional part of baud rate
-    UART0_LCRH_R = (UART_LCRH_WLEN_8 | UART_LCRH_FEN | UART_LCRH_SPS); // 8 data bits, odd parity, 1 stop bit
-
-//    UART0_CTL_R |= UART_CTL_LBE;                 // Enable loopback mode (set 7th bit of UARTCTL)
+    UART0_LCRH_R = (UART_LCRH_WLEN_8 | UART_LCRH_FEN); // 8 data bits, odd parity, 1 stop bit
     UART0_CTL_R |= UART_CTL_UARTEN;              // Enable UART0
 }
 
@@ -45,10 +36,10 @@ void UART0_Write(uint8_t data) {
 
 // Read a byte of data from UART0
 uint8_t UART0_Read(void) {
-    if (UART0_FR_R & UART_FR_RXFE) {
-        return 0;  // No data available
+    if ((UART0_FR_R & UART_FR_RXFE) == 0) {      // Check if RX FIFO is not empty
+        return (uint8_t)(UART0_DR_R & 0xFF);     // Read received data
     }
-    return (uint8_t)(UART0_DR_R & 0xFF); // Read received data
+        return 0;  // Return 0 if no data
 }
 
 // Initialize Port F for LEDs and switches
@@ -72,21 +63,18 @@ int main(void) {
 
         // If valid data is received, handle it
         if (receivedData != 0) {
-            if (receivedData == 0x72) {
-                GPIO_PORTF_DATA_R = LED_RED; // Turn green LED on if 0xAA received
-                UART0_Write(0x72);
+            UART0_Write(receivedData);  // Echo back received data to confirm reception
+            if (receivedData == 'R') {
+                GPIO_PORTF_DATA_R = (GPIO_PORTF_DATA_R & ~0x0E) | LED_RED;
             }
-            else if (receivedData == 0x62) {
-                GPIO_PORTF_DATA_R = LED_BLUE;  // Turn blue LED on if 0xF0 received
-                UART0_Write(0x62);
+            else if (receivedData == 'B') {
+                GPIO_PORTF_DATA_R = (GPIO_PORTF_DATA_R & ~0x0E) | LED_BLUE;
             }
-            else if (receivedData ==0x67 ){
-                GPIO_PORTF_DATA_R = LED_RED;
-                UART0_Write(0x67);
-
+            else if (receivedData == 'G') {
+                GPIO_PORTF_DATA_R = (GPIO_PORTF_DATA_R & ~0x0E) | LED_GREEN;
             }
             else {
-                GPIO_PORTF_DATA_R = 0x00;   // Turn red LED on for any other data or error
+                GPIO_PORTF_DATA_R &= ~0x0E;   // Turn off all LEDs
             }
         }
     }
