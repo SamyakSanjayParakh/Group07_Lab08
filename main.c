@@ -22,8 +22,8 @@ void UART0_Init(void) {
     GPIO_PORTA_DEN_R |= (1 << 0) | (1 << 1);     // Enable digital I/O for PA0 and PA1
 
     UART0_CTL_R &= ~UART_CTL_UARTEN;              // Disable UART0 to configure it
-    UART0_IBRD_R = 130;                        // Set integer part of baud rate (9600 baud)
-    UART0_FBRD_R = 13;                           // Set fractional part of baud rate
+    UART0_IBRD_R = 104;                        // Set integer part of baud rate (9600 baud)
+    UART0_FBRD_R = 11;                         // Set fractional part of baud rate
     UART0_LCRH_R = (UART_LCRH_WLEN_8 | UART_LCRH_FEN); // 8 data bits, odd parity, 1 stop bit
     UART0_CTL_R |= UART_CTL_UARTEN;              // Enable UART0
 }
